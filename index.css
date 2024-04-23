@@ -9,3 +9,20 @@ img {
   width: 100%;
   height: auto;
 }
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+h1 {
+  color: yellow;
+  text-align: center;
+  animation: blink 1s linear infinite;
+  font-size: 50px;
+}

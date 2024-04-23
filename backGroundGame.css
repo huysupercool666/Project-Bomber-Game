@@ -2,17 +2,17 @@ html,
 body {
   height: 100%;
   margin: 0;
-}
-
-body {
-  background: black;
+  background-color: bisque;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 canvas {
-  background: green;
-  height: 800px;
-  width: 1600px;
+  height: 1000px;
+  width: 1300px;
+}
+
+#game {
+  box-shadow: 20px 10px 20px black;
 }
