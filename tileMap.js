@@ -2,6 +2,8 @@ export default class TileMap {
   constructor(tileSize) {
     this.tileSize = tileSize;
     this.hardWall = this.#image("HardWall.png");
+    this.softWall = this.#image("SoftWall.png");
+    this.initMap();
   }
 
   #image(fileName) {
@@ -11,19 +13,41 @@ export default class TileMap {
   }
 
   //use 2 mension array to draw a map
-  // 0 is hard wall
-  // 1 is soft wall
-  map = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  ];
+  // 1 is hard wall
+  // 2 is soft wall
+  initMap() {
+    this.map = [
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+      [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+      [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+      [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+      [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+      [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+      [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+      [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+      [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    ];
+    this.addSoftWalls();
+  }
+
+  addSoftWalls() {
+    const positions = [];
+    for (let i = 1; i < this.map.length - 1; i++) {
+      for (let j = 1; j < this.map[i].length - 1; j++) {
+        if (this.map[i][j] === 0) {
+          positions.push([i, j]);
+        }
+      }
+    }
+    const numberOfSoftWalls = positions.length * 0.2;
+    for (let i = 0; i < numberOfSoftWalls; i++) {
+      const index = Math.floor(Math.random() * positions.length);
+      const pos = positions.splice(index, 1)[0];
+      this.map[pos[0]][pos[1]] = 2;
+    }
+  }
 
   draw(canvas, ctx) {
     this.#setCanvasSize(canvas);
@@ -38,6 +62,9 @@ export default class TileMap {
         switch (tile) {
           case 1:
             image = this.hardWall;
+            break;
+          case 2:
+            image = this.softWall;
             break;
         }
         if (image != null)
