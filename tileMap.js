@@ -1,6 +1,8 @@
 export default class TileMap {
   constructor(tileSize) {
     this.tileSize = tileSize;
+    this.x = 100;
+    this.y = 25;
     this.hardWall = this.#image("HardWall.png");
     this.softWall = this.#image("SoftWall.png");
     this.initMap();
@@ -34,14 +36,24 @@ export default class TileMap {
 
   addSoftWalls() {
     const positions = [];
+    const playerPosX = Math.floor(this.x / this.tileSize);
+    const playerPosY = Math.floor(this.y / this.tileSize);
+    const safeZoneTiles = Math.ceil(50 / this.tileSize);
+
     for (let i = 1; i < this.map.length - 1; i++) {
       for (let j = 1; j < this.map[i].length - 1; j++) {
-        if (this.map[i][j] === 0) {
+        const isInSafeZone =
+          i >= playerPosY - safeZoneTiles &&
+          i <= playerPosY + safeZoneTiles &&
+          j >= playerPosX - safeZoneTiles &&
+          j <= playerPosX + safeZoneTiles;
+
+        if (this.map[i][j] === 0 && !isInSafeZone) {
           positions.push([i, j]);
         }
       }
     }
-    const numberOfSoftWalls = positions.length * 0.2;
+    const numberOfSoftWalls = Math.floor(positions.length * 0.3);
     for (let i = 0; i < numberOfSoftWalls; i++) {
       const index = Math.floor(Math.random() * positions.length);
       const pos = positions.splice(index, 1)[0];
