@@ -5,5 +5,6 @@ const BomberManStates = {
   up: "goUp",
   down: "goDown",
   dead: "dead",
+  plantBomb:"plantBomb",
 };
 export default BomberManStates;

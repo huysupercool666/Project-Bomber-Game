@@ -5,8 +5,6 @@ export default class BomberMan {
     this.state = BomberManStates.idle;
     this.x = 40;
     this.y = 25;
-    this.height = 20;
-    this.width = 20;
     this.tileSize = 32;
     this.#createAnimations();
     document.addEventListener("keydown", this.#keydown);
@@ -21,7 +19,6 @@ export default class BomberMan {
     const image = animation.getImage();
     ctx.drawImage(image, this.x, this.y);
   }
-
   #setState() {
     if (this.deadPressed) {
       this.state = BomberManStates.dead;
@@ -45,21 +42,18 @@ export default class BomberMan {
     if (this.leftPressed) {
       this.x -= speed;
     }
-    if (this.upPressed && this.y > 32) {
+    if (this.upPressed) {
       this.y -= speed;
     }
     if (this.downPressed) {
       this.y += speed;
     }
   }
-  #canMoveTo(x, y) {
-    return this.map[y][x] === 0;
-  }
   #createAnimations() {
     this.characterIdle = new SpriteAnimation(
       "CharacterIdle.png",
       1,
-      1,
+      10,
       BomberManStates.idle
     );
     this.goDownAnimation = new SpriteAnimation(
@@ -93,6 +87,12 @@ export default class BomberMan {
       BomberManStates.dead,
       true
     );
+    this.bombAnimation = new SpriteAnimation(
+      "BombAnimation(?).png",
+      8,
+      9,
+      BomberManStates.plantBomb
+    );
     this.animations = [
       this.characterIdle,
       this.goDownAnimation,
@@ -100,24 +100,29 @@ export default class BomberMan {
       this.goLeftAnimation,
       this.goRightAnimation,
       this.deadAnimation,
+      this.bombAnimation,
     ];
   }
 
   #keydown = (event) => {
     switch (event.code) {
-      case "ArrowRight":
+      case "KeyD":
         this.rightPressed = true;
         break;
-      case "ArrowLeft":
+      case "KeyA":
         this.leftPressed = true;
         break;
-      case "ArrowUp":
+      case "KeyW":
         this.upPressed = true;
         break;
-      case "ArrowDown":
+      case "KeyS":
         this.downPressed = true;
         break;
-      case "KeyD":
+      case "Space":
+        this.bombPressed = true;
+        break;
+      //create dead animation and reset character
+      case "KeyB":
         this.deadPressed = true;
         break;
       case "KeyR":
@@ -129,17 +134,20 @@ export default class BomberMan {
 
   #keyup = (event) => {
     switch (event.code) {
-      case "ArrowRight":
+      case "KeyD":
         this.rightPressed = false;
         break;
-      case "ArrowLeft":
+      case "KeyA":
         this.leftPressed = false;
         break;
-      case "ArrowUp":
+      case "KeyW":
         this.upPressed = false;
         break;
-      case "ArrowDown":
+      case "KeyS":
         this.downPressed = false;
+        break;
+      case "Space":
+        this.BombPressed = false;
         break;
     }
   };

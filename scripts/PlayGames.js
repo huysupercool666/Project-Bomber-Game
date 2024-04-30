@@ -1,5 +1,5 @@
-import BomberMan from "./bomberMan.js";
-import TileMap from "./tileMap.js";
+import BomberMan from "./BomberMan.js";
+import TileMap from "./TileMap.js";
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");

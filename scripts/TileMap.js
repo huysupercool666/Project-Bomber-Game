@@ -10,7 +10,7 @@ export default class TileMap {
 
   #image(fileName) {
     const img = new Image();
-    img.src = `Image/${fileName}`;
+    img.src = `/Image/${fileName}`;
     return img;
   }
 
