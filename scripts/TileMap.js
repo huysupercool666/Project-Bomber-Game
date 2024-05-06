@@ -1,20 +1,24 @@
-const characterPosition = bomberMan.bomberManPosition();
 export default class TileMap {
-  constructor(tileSize, x, y) {
+  constructor(tileSize, bomberMan) {
     this.tileSize = tileSize;
+    this.bomberMan = bomberMan;
     this.x = 100;
     this.y = 25;
     this.hardWall = this.#image("HardWall.png");
     this.softWall = this.#image("SoftWall.png");
     this.initMap();
-    this.checkCO();
-  }
-  checkCO() {
-    if (this.x > this.y) {
-      console.log(characterPosition.x);
-    }
   }
 
+  checkCollision() {
+    const bomberManPos = this.bomberMan.getBomberManPosition();
+    const tileX = Math.floor(bomberManPos.x / this.tileSize);
+    const tileY = Math.floor(bomberManPos.y / this.tileSize);
+    if (this.map[tileY] && this.map[tileY][tileX] === 1) {
+      console.log("Collision with Hard Wall");
+    } else if (this.map[tileY] && this.map[tileY][tileX] === 2) {
+      console.log("Collision with Soft Wall");
+    }
+  }
   #image(fileName) {
     const img = new Image();
     img.src = `/Image/${fileName}`;

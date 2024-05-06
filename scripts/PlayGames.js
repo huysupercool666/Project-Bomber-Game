@@ -9,6 +9,7 @@ const tileMap = new TileMap(tileSize, bomberMan);
 function gameLoop() {
   tileMap.draw(canvas, ctx);
   bomberMan.draw(ctx);
+  tileMap.checkCollision();
 }
 
 setInterval(gameLoop, 1000 / 60);

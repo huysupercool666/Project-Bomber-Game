@@ -12,7 +12,6 @@ export default class BomberMan {
     };
   }
   getBomberManPosition() {
-    console.log(bomberManPosition.x);
     return this.bomberManPosition;
   }
   draw(ctx) {
