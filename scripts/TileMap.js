@@ -1,11 +1,18 @@
+const characterPosition = bomberMan.bomberManPosition();
 export default class TileMap {
-  constructor(tileSize) {
+  constructor(tileSize, x, y) {
     this.tileSize = tileSize;
     this.x = 100;
     this.y = 25;
     this.hardWall = this.#image("HardWall.png");
     this.softWall = this.#image("SoftWall.png");
     this.initMap();
+    this.checkCO();
+  }
+  checkCO() {
+    if (this.x > this.y) {
+      console.log(characterPosition.x);
+    }
   }
 
   #image(fileName) {
@@ -13,7 +20,6 @@ export default class TileMap {
     img.src = `/Image/${fileName}`;
     return img;
   }
-
   //use 2 mension array to draw a map
   // 1 is hard wall
   // 2 is soft wall

@@ -3,12 +3,17 @@ import SpriteAnimation from "./SpriteAnimation.js";
 export default class BomberMan {
   constructor() {
     this.state = BomberManStates.idle;
-    this.x = 40;
-    this.y = 25;
-    this.tileSize = 32;
     this.#createAnimations();
     document.addEventListener("keydown", this.#keydown);
     document.addEventListener("keyup", this.#keyup);
+    this.bomberManPosition = {
+      x: 40,
+      y: 25,
+    };
+  }
+  getBomberManPosition() {
+    console.log(bomberManPosition.x);
+    return this.bomberManPosition;
   }
   draw(ctx) {
     this.#setState();
@@ -17,7 +22,7 @@ export default class BomberMan {
       animation.isFor(this.state)
     );
     const image = animation.getImage();
-    ctx.drawImage(image, this.x, this.y);
+    ctx.drawImage(image, this.bomberManPosition.x, this.bomberManPosition.y);
   }
   #setState() {
     if (this.deadPressed) {
@@ -37,18 +42,19 @@ export default class BomberMan {
   #updatePosition() {
     const speed = 2;
     if (this.rightPressed) {
-      this.x += speed;
+      this.bomberManPosition.x += speed;
     }
     if (this.leftPressed) {
-      this.x -= speed;
+      this.bomberManPosition.x -= speed;
     }
     if (this.upPressed) {
-      this.y -= speed;
+      this.bomberManPosition.y -= speed;
     }
     if (this.downPressed) {
-      this.y += speed;
+      this.bomberManPosition.y += speed;
     }
   }
+  //check Collision (so sánh x,y)
   #createAnimations() {
     this.characterIdle = new SpriteAnimation(
       "CharacterIdle.png",
