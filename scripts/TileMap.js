@@ -1,23 +1,27 @@
 export default class TileMap {
-  constructor(tileSize, bomberMan) {
+  constructor(tileSize) {
     this.tileSize = tileSize;
-    this.bomberMan = bomberMan;
     this.x = 100;
     this.y = 25;
     this.hardWall = this.#image("HardWall.png");
     this.softWall = this.#image("SoftWall.png");
     this.initMap();
   }
+  canMoveTo(x, y) {
+    const tileX = Math.floor(x / this.tileSize);
+    const tileY = Math.floor(y / this.tileSize);
 
-  checkCollision() {
-    const bomberManPos = this.bomberMan.getBomberManPosition();
-    const tileX = Math.floor(bomberManPos.x / this.tileSize);
-    const tileY = Math.floor(bomberManPos.y / this.tileSize);
-    if (this.map[tileY] && this.map[tileY][tileX] === 1) {
-      console.log("Collision with Hard Wall");
-    } else if (this.map[tileY] && this.map[tileY][tileX] === 2) {
-      console.log("Collision with Soft Wall");
+    // Ensure the tile indices are within the map boundaries
+    if (
+      tileY >= 0 &&
+      tileY < this.map.length &&
+      tileX >= 0 &&
+      tileX < this.map[tileY].length
+    ) {
+      const tile = this.map[tileY][tileX];
+      return !(tile === 1 || tile === 2);
     }
+    return false;
   }
   #image(fileName) {
     const img = new Image();

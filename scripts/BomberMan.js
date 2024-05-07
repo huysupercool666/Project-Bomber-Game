@@ -1,18 +1,16 @@
 import BomberManStates from "./BomberManStates.js";
 import SpriteAnimation from "./SpriteAnimation.js";
 export default class BomberMan {
-  constructor() {
+  constructor(tileMap) {
+    this.tileMap = tileMap;
     this.state = BomberManStates.idle;
     this.#createAnimations();
     document.addEventListener("keydown", this.#keydown);
     document.addEventListener("keyup", this.#keyup);
     this.bomberManPosition = {
       x: 40,
-      y: 25,
+      y: 35,
     };
-  }
-  getBomberManPosition() {
-    return this.bomberManPosition;
   }
   draw(ctx) {
     this.#setState();
@@ -40,17 +38,27 @@ export default class BomberMan {
   }
   #updatePosition() {
     const speed = 2;
+    let newX = this.bomberManPosition.x;
+    let newY = this.bomberManPosition.y;
+
     if (this.rightPressed) {
-      this.bomberManPosition.x += speed;
+      newX += speed;
     }
     if (this.leftPressed) {
-      this.bomberManPosition.x -= speed;
+      newX -= speed;
     }
     if (this.upPressed) {
-      this.bomberManPosition.y -= speed;
+      newY -= speed;
     }
     if (this.downPressed) {
-      this.bomberManPosition.y += speed;
+      newY += speed;
+    }
+
+    if (this.tileMap.canMoveTo(newX, this.bomberManPosition.y)) {
+      this.bomberManPosition.x = newX;
+    }
+    if (this.tileMap.canMoveTo(this.bomberManPosition.x, newY)) {
+      this.bomberManPosition.y = newY;
     }
   }
   //check Collision (so sánh x,y)
