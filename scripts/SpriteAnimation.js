@@ -25,7 +25,6 @@ export default class SpriteAnimation {
   }
 
   reset() {
-    // this function when character dead and reset the animation.
     this.imageIndex = 0;
   }
 

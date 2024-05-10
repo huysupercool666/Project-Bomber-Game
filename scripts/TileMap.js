@@ -1,17 +1,17 @@
 export default class TileMap {
   constructor(tileSize) {
     this.tileSize = tileSize;
-    this.x = 100;
-    this.y = 25;
+    this.x = 90;
+    this.y = 50;
     this.hardWall = this.#image("HardWall.png");
     this.softWall = this.#image("SoftWall.png");
     this.initMap();
   }
+
   canMoveTo(x, y) {
     const tileX = Math.floor(x / this.tileSize);
     const tileY = Math.floor(y / this.tileSize);
 
-    // Ensure the tile indices are within the map boundaries
     if (
       tileY >= 0 &&
       tileY < this.map.length &&
@@ -28,6 +28,7 @@ export default class TileMap {
     img.src = `/Image/${fileName}`;
     return img;
   }
+
   //use 2 mension array to draw a map
   // 1 is hard wall
   // 2 is soft wall
@@ -67,7 +68,7 @@ export default class TileMap {
         }
       }
     }
-    const numberOfSoftWalls = Math.floor(positions.length * 0.3);
+    const numberOfSoftWalls = Math.floor(positions.length * 0.2);
     for (let i = 0; i < numberOfSoftWalls; i++) {
       const index = Math.floor(Math.random() * positions.length);
       const pos = positions.splice(index, 1)[0];
@@ -80,6 +81,7 @@ export default class TileMap {
     this.#clearCanvas(canvas, ctx);
     this.#drawMap(ctx);
   }
+
   #drawMap(ctx) {
     for (let row = 0; row < this.map.length; row++) {
       for (let column = 0; column < this.map[row].length; column++) {
@@ -112,6 +114,8 @@ export default class TileMap {
 
   #setCanvasSize(canvas) {
     canvas.height = this.map.length * this.tileSize;
+    console.log(canvas.height);
     canvas.width = this.map[0].length * this.tileSize;
+    console.log(canvas.width);
   }
 }
