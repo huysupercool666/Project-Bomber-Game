@@ -1,6 +1,7 @@
 import Bomb from "./Bomb.js";
 import BomberManStates from "./BomberManStates.js";
 import SpriteAnimation from "./SpriteAnimation.js";
+
 export default class BomberMan {
   constructor(tileMap, tileSize) {
     this.tileMap = tileMap;
@@ -10,7 +11,7 @@ export default class BomberMan {
     this.#createAnimations();
     document.addEventListener("keydown", this.#keydown);
     document.addEventListener("keyup", this.#keyup);
-    this.bomberManPosition = { x: 57, y: 48 };
+    this.bomberManPosition = { x: 57, y: 48 }; // Adjust starting position if necessary
   }
 
   draw(ctx) {
@@ -24,11 +25,12 @@ export default class BomberMan {
       ctx.drawImage(image, this.bomberManPosition.x, this.bomberManPosition.y);
     }
     this.bombs.forEach((bomb) => {
-      bomb.update(20);
+      bomb.update(20); // Assuming 20 is the deltaTime for simplicity
       bomb.draw(ctx);
     });
     this.bombs = this.bombs.filter((bomb) => !bomb.exploded);
   }
+
   #setState() {
     if (this.deadPressed) {
       this.state = BomberManStates.dead;
@@ -44,6 +46,7 @@ export default class BomberMan {
       this.state = BomberManStates.idle;
     }
   }
+
   #updatePosition() {
     const speed = 2;
     let newX =
@@ -55,15 +58,11 @@ export default class BomberMan {
       (this.downPressed ? speed : 0) -
       (this.upPressed ? speed : 0);
 
-    console.log(`Attempting to move to X: ${newX}, Y: ${newY}`);
-
     if (this.tileMap.canMoveTo(newX, this.bomberManPosition.y)) {
       this.bomberManPosition.x = newX;
-      console.log(`Moved to X: ${newX}`);
     }
     if (this.tileMap.canMoveTo(this.bomberManPosition.x, newY)) {
       this.bomberManPosition.y = newY;
-      console.log(`Moved to Y: ${newY}`);
     }
   }
 
@@ -105,12 +104,6 @@ export default class BomberMan {
       BomberManStates.dead,
       true
     );
-    this.bombAnimation = new SpriteAnimation(
-      "BombAnimation(?).png",
-      9,
-      9,
-      BomberManStates.plantBomb
-    );
     this.animations = [
       this.characterIdle,
       this.goDownAnimation,
@@ -118,17 +111,20 @@ export default class BomberMan {
       this.goLeftAnimation,
       this.goRightAnimation,
       this.deadAnimation,
-      this.bombAnimation,
     ];
   }
+
   plantBomb() {
-    const bomb = new Bomb(
-      this.bomberManPosition.x,
-      this.bomberManPosition.y,
-      this.tileSize
-    );
-    this.bombs.push(bomb);
+    const tileX =
+      Math.floor(this.bomberManPosition.x / this.tileSize) * this.tileSize;
+    const tileY =
+      Math.floor(this.bomberManPosition.y / this.tileSize) * this.tileSize; 
+    if (this.tileMap.canMoveTo(tileX, tileY)) {
+      const bomb = new Bomb(tileX, tileY, this.tileSize, this.tileMap);
+      this.bombs.push(bomb);
+    }
   }
+
   #keydown = (event) => {
     switch (event.code) {
       case "KeyD":

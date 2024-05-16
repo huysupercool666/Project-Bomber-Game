@@ -10,8 +10,8 @@ export default class TileMap {
   }
   //so sánh dài, rộng của nhân vật và tường, đồng thời cũng kiểm tra va chạm giữa nhân vật và tường
   canMoveTo(x, y) {
-    const characterWidth = 25;
-    const characterHeight = 30;
+    const characterWidth = 20;
+    const characterHeight = 25;
     const tiles = [
       { x: Math.floor(x / this.tileSize), y: Math.floor(y / this.tileSize) },
       {
