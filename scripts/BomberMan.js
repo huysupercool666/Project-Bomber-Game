@@ -10,7 +10,7 @@ export default class BomberMan {
     this.#createAnimations();
     document.addEventListener("keydown", this.#keydown);
     document.addEventListener("keyup", this.#keyup);
-    this.bomberManPosition = { x: 45, y: 40 };
+    this.bomberManPosition = { x: 57, y: 48 };
   }
 
   draw(ctx) {
@@ -46,35 +46,32 @@ export default class BomberMan {
   }
   #updatePosition() {
     const speed = 2;
-    let newX = this.bomberManPosition.x;
-    let newY = this.bomberManPosition.y;
+    let newX =
+      this.bomberManPosition.x +
+      (this.rightPressed ? speed : 0) -
+      (this.leftPressed ? speed : 0);
+    let newY =
+      this.bomberManPosition.y +
+      (this.downPressed ? speed : 0) -
+      (this.upPressed ? speed : 0);
 
-    if (this.rightPressed) {
-      newX += speed;
-    }
-    if (this.leftPressed) {
-      newX -= speed;
-    }
-    if (this.upPressed) {
-      newY -= speed;
-    }
-    if (this.downPressed) {
-      newY += speed;
-    }
+    console.log(`Attempting to move to X: ${newX}, Y: ${newY}`);
 
     if (this.tileMap.canMoveTo(newX, this.bomberManPosition.y)) {
       this.bomberManPosition.x = newX;
+      console.log(`Moved to X: ${newX}`);
     }
     if (this.tileMap.canMoveTo(this.bomberManPosition.x, newY)) {
       this.bomberManPosition.y = newY;
+      console.log(`Moved to Y: ${newY}`);
     }
   }
 
   #createAnimations() {
     this.characterIdle = new SpriteAnimation(
-      "CharacterIdle.png",
-      1,
-      10,
+      "CharacterIdle(?).png",
+      4,
+      200,
       BomberManStates.idle
     );
     this.goDownAnimation = new SpriteAnimation(
@@ -103,14 +100,14 @@ export default class BomberMan {
     );
     this.deadAnimation = new SpriteAnimation(
       "DeadAnimation(?).png",
-      8,
+      9,
       9,
       BomberManStates.dead,
       true
     );
     this.bombAnimation = new SpriteAnimation(
       "BombAnimation(?).png",
-      8,
+      9,
       9,
       BomberManStates.plantBomb
     );

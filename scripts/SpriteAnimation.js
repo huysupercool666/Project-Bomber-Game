@@ -1,9 +1,10 @@
 import img from "./Img.js";
+
 export default class SpriteAnimation {
   images = [];
   constructor(fileNameTemplate, numberOfImages, timerCount, state, stopAtEnd) {
     for (let serialNum = 1; serialNum <= numberOfImages; serialNum++) {
-      const image = img(fileNameTemplate.replace("?", serialNum));
+      const image = img(fileNameTemplate.replace("?", serialNum), 50, 50);
       this.images.push(image);
     }
     this.timerCount = timerCount;
@@ -11,13 +12,6 @@ export default class SpriteAnimation {
     this.imageIndex = 0;
     this.state = state;
     this.stopAtEnd = stopAtEnd;
-  }
-
-  draw(ctx) {
-    const image = this.characterIdle.getImage();
-    const x = 50;
-    const y = 25;
-    ctx.drawImage(image, x, y);
   }
 
   isFor(state) {

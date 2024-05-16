@@ -1,28 +1,43 @@
 export default class TileMap {
-  constructor(tileSize) {
+  constructor(tileSize, bomberMan) {
+    this.bomberMan = bomberMan;
     this.tileSize = tileSize;
-    this.x = 90;
+    this.x = 100;
     this.y = 50;
     this.hardWall = this.#image("HardWall.png");
     this.softWall = this.#image("SoftWall.png");
     this.initMap();
   }
-
+  //so sánh dài, rộng của nhân vật và tường, đồng thời cũng kiểm tra va chạm giữa nhân vật và tường
   canMoveTo(x, y) {
-    const tileX = Math.floor(x / this.tileSize);
-    const tileY = Math.floor(y / this.tileSize);
-
-    if (
-      tileY >= 0 &&
-      tileY < this.map.length &&
-      tileX >= 0 &&
-      tileX < this.map[tileY].length
-    ) {
-      const tile = this.map[tileY][tileX];
-      return !(tile === 1 || tile === 2);
-    }
-    return false;
+    const characterWidth = 25;
+    const characterHeight = 30;
+    const tiles = [
+      { x: Math.floor(x / this.tileSize), y: Math.floor(y / this.tileSize) },
+      {
+        x: Math.floor((x + characterWidth) / this.tileSize),
+        y: Math.floor(y / this.tileSize),
+      },
+      {
+        x: Math.floor(x / this.tileSize),
+        y: Math.floor((y + characterHeight) / this.tileSize),
+      },
+      {
+        x: Math.floor((x + characterWidth) / this.tileSize),
+        y: Math.floor((y + characterHeight) / this.tileSize),
+      },
+    ];
+    return tiles.every((tile) => {
+      return (
+        tile.y >= 0 &&
+        tile.y < this.map.length &&
+        tile.x >= 0 &&
+        tile.x < this.map[tile.y].length &&
+        this.map[tile.y][tile.x] === 0
+      );
+    });
   }
+  ////////////////////////////
   #image(fileName) {
     const img = new Image();
     img.src = `/Image/${fileName}`;
@@ -32,6 +47,7 @@ export default class TileMap {
   //use 2 mension array to draw a map
   // 1 is hard wall
   // 2 is soft wall
+
   initMap() {
     this.map = [
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -68,6 +84,7 @@ export default class TileMap {
         }
       }
     }
+    //Math.random(10) ý tưởng là để tạo nhiều kiểu softwall khác nhau
     const numberOfSoftWalls = Math.floor(positions.length * 0.2);
     for (let i = 0; i < numberOfSoftWalls; i++) {
       const index = Math.floor(Math.random() * positions.length);
@@ -83,6 +100,7 @@ export default class TileMap {
   }
 
   #drawMap(ctx) {
+    const wallPadding = (this.tileSize - 45) / 2;
     for (let row = 0; row < this.map.length; row++) {
       for (let column = 0; column < this.map[row].length; column++) {
         const tile = this.map[row][column];
@@ -98,10 +116,10 @@ export default class TileMap {
         if (image != null)
           ctx.drawImage(
             image,
-            column * this.tileSize,
-            row * this.tileSize,
-            this.tileSize,
-            this.tileSize
+            column * this.tileSize + wallPadding,
+            row * this.tileSize + wallPadding,
+            45,
+            45
           );
       }
     }
