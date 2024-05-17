@@ -1,4 +1,4 @@
-export default function img(file, width, height) {
+export default function img(file, width = 40, height = 45) {
   const image = new Image();
   image.onload = () => {
     if (width && height) {

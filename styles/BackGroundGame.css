@@ -9,8 +9,8 @@ body {
 }
 
 canvas {
-  height: 900px;
-  width: 1100px;
+  height: 750px;
+  width: 900px;
 }
 
 #game {

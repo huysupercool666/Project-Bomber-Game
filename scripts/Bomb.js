@@ -9,9 +9,9 @@ export default class Bomb {
     this.width = tileSize;
     this.height = tileSize;
     this.timer = 3000; // milliseconds until the bomb explodes
-    this.explosionDuration = 3000; // milliseconds for how long the explosion lasts
+    this.explosionDuration = 1000; // milliseconds for how long the explosion lasts
     this.exploded = false;
-    this.explodedTime = 0; // Track how long the explosion has been visible
+    this.explodedTime = 3000; // Track how long the explosion has been visible
     this.bombAnimation = new SpriteAnimation(
       "BombAnimation(?).png",
       4,
@@ -21,19 +21,21 @@ export default class Bomb {
     );
     this.explosionAnimation = new SpriteAnimation(
       "ExplosiveAnimation(2).png",
-      8,
+      2,
       30,
       "bombExplosion",
       true
     );
-    this.explosionLength = 3; // Number of tiles in each direction the explosion covers
+    this.explosionLength = 2; // Number of tiles in each direction the explosion covers
   }
 
   update(deltaTime) {
     if (this.timer > 0) {
       this.timer -= deltaTime;
       if (this.timer <= 0) {
+        this.explodedTime = this.explosionDuration;
         this.explode();
+        this.explodedTime = this.explosionDuration;
       }
     } else if (this.exploded && this.explodedTime > 0) {
       this.explodedTime -= deltaTime;
@@ -43,7 +45,7 @@ export default class Bomb {
     }
   }
 
-  draw(ctx) {
+  draw(ctx, deltaTime) {
     if (!this.exploded) {
       const image = this.bombAnimation.getImage();
       ctx.drawImage(
@@ -54,56 +56,46 @@ export default class Bomb {
         this.tileSize
       );
     } else {
-      this.drawExplosion(ctx);
+      this.drawExplosion(ctx, deltaTime);
     }
   }
 
   explode() {
     this.exploded = true;
-    console.log("Bomb exploded at", this.x, this.y);
   }
 
-  drawExplosion(ctx) {
-    const centerImage = this.explosionAnimation.getImage();
-    ctx.drawImage(centerImage, this.x, this.y, this.tileSize, this.tileSize);
+  drawExplosion(ctx, deltaTime) {
+    ctx.fillStyle = "#D72B16"; // Orange color for the explosion
 
-    // Draw the explosion in all four directions, stopping at walls
-    for (let i = 1; i <= this.explosionLength; i++) {
-      // Left
-      const leftX = this.x - i * this.tileSize;
-      const leftY = this.y;
-      if (this.tileMap.canMoveTo(leftX, leftY)) {
-        const stepImage = this.explosionAnimation.getImage();
-        ctx.drawImage(stepImage, leftX, leftY, this.tileSize, this.tileSize);
-      } else break;
+    // Draw the center explosion
+    ctx.fillRect(this.x, this.y, this.tileSize, this.tileSize);
 
-      // Right
-      const rightX = this.x + i * this.tileSize;
-      const rightY = this.y;
-      if (this.tileMap.canMoveTo(rightX, rightY)) {
-        const stepImage = this.explosionAnimation.getImage();
-        ctx.drawImage(stepImage, rightX, rightY, this.tileSize, this.tileSize);
-      } else break;
+    // Function to handle the explosion propagation
+    const propagateExplosion = (startX, startY, stepX, stepY, color) => {
+      ctx.fillStyle = color;
+      for (let i = 1; i <= this.explosionLength; i++) {
+        const x = startX + i * stepX;
+        const y = startY + i * stepY;
+        if (this.tileMap.hasSoftWall(x, y)) {
+          this.tileMap.removeTile(x, y);
+          ctx.fillRect(x, y, this.tileSize, this.tileSize);
+          break;
+        } else if (this.tileMap.canMoveTo(x, y)) {
+          ctx.fillRect(x, y, this.tileSize, this.tileSize);
+        } else {
+          break;
+        }
+      }
+    };
 
-      // Up
-      const upX = this.x;
-      const upY = this.y - i * this.tileSize;
-      if (this.tileMap.canMoveTo(upX, upY)) {
-        const stepImage = this.explosionAnimation.getImage();
-        ctx.drawImage(stepImage, upX, upY, this.tileSize, this.tileSize);
-      } else break;
-
-      // Down
-      const downX = this.x;
-      const downY = this.y + i * this.tileSize;
-      if (this.tileMap.canMoveTo(downX, downY)) {
-        const stepImage = this.explosionAnimation.getImage();
-        ctx.drawImage(stepImage, downX, downY, this.tileSize, this.tileSize);
-      } else break;
-    }
+    // Draw the explosion in all four directions
+    propagateExplosion(this.x, this.y, -this.tileSize, 0, "#F39642"); // Left
+    propagateExplosion(this.x, this.y, this.tileSize, 0, "#F39642"); // Right
+    propagateExplosion(this.x, this.y, 0, -this.tileSize, "#FFE5A8"); // Up
+    propagateExplosion(this.x, this.y, 0, this.tileSize, "#FFE5A8"); // Down
   }
 
   remove() {
-    // Implement remove logic if needed
+    // Implement any additional removal logic if needed
   }
 }

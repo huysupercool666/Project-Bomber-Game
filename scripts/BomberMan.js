@@ -12,9 +12,13 @@ export default class BomberMan {
     document.addEventListener("keydown", this.#keydown);
     document.addEventListener("keyup", this.#keyup);
     this.bomberManPosition = { x: 57, y: 48 }; // Adjust starting position if necessary
+    this.isAlive = true;
   }
 
   draw(ctx) {
+    if (!this.isAlive) {
+      this.state = BomberManStates.dead;
+    }
     this.#setState();
     this.#updatePosition();
     const animation = this.animations.find((animation) =>
@@ -29,6 +33,43 @@ export default class BomberMan {
       bomb.draw(ctx);
     });
     this.bombs = this.bombs.filter((bomb) => !bomb.exploded);
+
+    this.checkExplosionCollision();
+  }
+
+  checkExplosionCollision() {
+    if (!this.isAlive) return;
+
+    const bombExplosions = this.bombs.filter((bomb) => bomb.exploded);
+    bombExplosions.forEach((bomb) => {
+      const bombX = Math.floor(bomb.x / this.tileSize);
+      const bombY = Math.floor(bomb.y / this.tileSize);
+      const playerX = Math.floor(this.bomberManPosition.x / this.tileSize);
+      const playerY = Math.floor(this.bomberManPosition.y / this.tileSize);
+
+      if (playerX === bombX && playerY === bombY) {
+        this.isAlive = false;
+      }
+
+      for (let i = 1; i <= bomb.explosionLength; i++) {
+        // Check left explosion
+        if (playerX === bombX - i && playerY === bombY) {
+          this.isAlive = false;
+        }
+        // Check right explosion
+        if (playerX === bombX + i && playerY === bombY) {
+          this.isAlive = false;
+        }
+        // Check up explosion
+        if (playerX === bombX && playerY === bombY - i) {
+          this.isAlive = false;
+        }
+        // Check down explosion
+        if (playerX === bombX && playerY === bombY + i) {
+          this.isAlive = false;
+        }
+      }
+    });
   }
 
   #setState() {
@@ -48,6 +89,8 @@ export default class BomberMan {
   }
 
   #updatePosition() {
+    if (!this.isAlive) return;
+
     const speed = 2;
     let newX =
       this.bomberManPosition.x +
@@ -118,7 +161,7 @@ export default class BomberMan {
     const tileX =
       Math.floor(this.bomberManPosition.x / this.tileSize) * this.tileSize;
     const tileY =
-      Math.floor(this.bomberManPosition.y / this.tileSize) * this.tileSize; 
+      Math.floor(this.bomberManPosition.y / this.tileSize) * this.tileSize;
     if (this.tileMap.canMoveTo(tileX, tileY)) {
       const bomb = new Bomb(tileX, tileY, this.tileSize, this.tileMap);
       this.bombs.push(bomb);

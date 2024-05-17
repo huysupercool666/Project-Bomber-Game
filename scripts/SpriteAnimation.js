@@ -4,7 +4,7 @@ export default class SpriteAnimation {
   images = [];
   constructor(fileNameTemplate, numberOfImages, timerCount, state, stopAtEnd) {
     for (let serialNum = 1; serialNum <= numberOfImages; serialNum++) {
-      const image = img(fileNameTemplate.replace("?", serialNum), 40, 42);
+      const image = img(fileNameTemplate.replace("?", serialNum));
       this.images.push(image);
     }
     this.timerCount = timerCount;

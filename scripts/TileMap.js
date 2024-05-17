@@ -8,7 +8,7 @@ export default class TileMap {
     this.softWall = this.#image("SoftWall.png");
     this.initMap();
   }
-  //so sánh dài, rộng của nhân vật và tường, đồng thời cũng kiểm tra va chạm giữa nhân vật và tường
+
   canMoveTo(x, y) {
     const characterWidth = 20;
     const characterHeight = 25;
@@ -37,16 +37,28 @@ export default class TileMap {
       );
     });
   }
-  ////////////////////////////
+
+  // Check if a tile contains a soft wall
+  hasSoftWall(x, y) {
+    const tileX = Math.floor(x / this.tileSize);
+    const tileY = Math.floor(y / this.tileSize);
+    return this.map[tileY][tileX] === 2;
+  }
+
+  // Remove a soft wall tile
+  removeTile(x, y) {
+    const tileX = Math.floor(x / this.tileSize);
+    const tileY = Math.floor(y / this.tileSize);
+    if (this.map[tileY][tileX] === 2) {
+      this.map[tileY][tileX] = 0;
+    }
+  }
+
   #image(fileName) {
     const img = new Image();
     img.src = `/Image/${fileName}`;
     return img;
   }
-
-  //use 2 mension array to draw a map
-  // 1 is hard wall
-  // 2 is soft wall
 
   initMap() {
     this.map = [
@@ -84,7 +96,6 @@ export default class TileMap {
         }
       }
     }
-    //Math.random(10) ý tưởng là để tạo nhiều kiểu softwall khác nhau
     const numberOfSoftWalls = Math.floor(positions.length * 0.2);
     for (let i = 0; i < numberOfSoftWalls; i++) {
       const index = Math.floor(Math.random() * positions.length);
@@ -132,8 +143,6 @@ export default class TileMap {
 
   #setCanvasSize(canvas) {
     canvas.height = this.map.length * this.tileSize;
-    console.log(canvas.height);
     canvas.width = this.map[0].length * this.tileSize;
-    console.log(canvas.width);
   }
 }
