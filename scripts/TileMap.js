@@ -1,15 +1,50 @@
 export default class TileMap {
-  constructor(tileSize, bomberMan) {
-    this.bomberMan = bomberMan;
+  constructor(tileSize) {
     this.tileSize = tileSize;
     this.x = 100;
     this.y = 50;
     this.hardWall = this.#image("HardWall.png");
     this.softWall = this.#image("SoftWall.png");
     this.initMap();
+    this.bombPositions = new Set();
+  }
+
+  setBomberMan(bomberMan) {
+    this.bomberMan = bomberMan;
   }
 
   canMoveTo(x, y) {
+    const characterWidth = 20;
+    const characterHeight = 25;
+    const tiles = [
+      { x: Math.floor(x / this.tileSize), y: Math.floor(y / this.tileSize) },
+      {
+        x: Math.floor((x + characterWidth) / this.tileSize),
+        y: Math.floor(y / this.tileSize),
+      },
+      {
+        x: Math.floor(x / this.tileSize),
+        y: Math.floor((y + characterHeight) / this.tileSize),
+      },
+      {
+        x: Math.floor((x + characterWidth) / this.tileSize),
+        y: Math.floor((y + characterHeight) / this.tileSize),
+      },
+    ];
+    return tiles.every((tile) => {
+      const tileKey = `${tile.x},${tile.y}`;
+      return (
+        tile.y >= 0 &&
+        tile.y < this.map.length &&
+        tile.x >= 0 &&
+        tile.x < this.map[tile.y].length &&
+        this.map[tile.y][tile.x] === 0 &&
+        !this.bombPositions.has(tileKey)
+      );
+    });
+  }
+
+  canMoveToIgnoreBomb(x, y) {
     const characterWidth = 20;
     const characterHeight = 25;
     const tiles = [
@@ -36,6 +71,18 @@ export default class TileMap {
         this.map[tile.y][tile.x] === 0
       );
     });
+  }
+
+  placeBomb(x, y) {
+    const tileX = Math.floor(x / this.tileSize);
+    const tileY = Math.floor(y / this.tileSize);
+    this.bombPositions.add(`${tileX},${tileY}`);
+  }
+
+  removeBomb(x, y) {
+    const tileX = Math.floor(x / this.tileSize);
+    const tileY = Math.floor(y / this.tileSize);
+    this.bombPositions.delete(`${tileX},${tileY}`);
   }
 
   // Check if a tile contains a soft wall
@@ -96,7 +143,7 @@ export default class TileMap {
         }
       }
     }
-    const numberOfSoftWalls = Math.floor(positions.length * 0.2);
+    const numberOfSoftWalls = Math.floor(positions.length * Math.random(10));
     for (let i = 0; i < numberOfSoftWalls; i++) {
       const index = Math.floor(Math.random() * positions.length);
       const pos = positions.splice(index, 1)[0];

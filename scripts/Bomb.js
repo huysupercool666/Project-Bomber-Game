@@ -9,7 +9,7 @@ export default class Bomb {
     this.width = tileSize;
     this.height = tileSize;
     this.timer = 3000; // milliseconds until the bomb explodes
-    this.explosionDuration = 1000; // milliseconds for how long the explosion lasts
+    this.explosionDuration = 2000; // milliseconds for how long the explosion lasts
     this.exploded = false;
     this.explodedTime = 3000; // Track how long the explosion has been visible
     this.bombAnimation = new SpriteAnimation(
@@ -26,7 +26,7 @@ export default class Bomb {
       "bombExplosion",
       true
     );
-    this.explosionLength = 2; // Number of tiles in each direction the explosion covers
+    this.explosionLength = 2;
   }
 
   update(deltaTime) {
@@ -62,15 +62,12 @@ export default class Bomb {
 
   explode() {
     this.exploded = true;
+    this.tileMap.removeBomb(this.x, this.y);
   }
 
   drawExplosion(ctx, deltaTime) {
-    ctx.fillStyle = "#D72B16"; // Orange color for the explosion
-
-    // Draw the center explosion
+    ctx.fillStyle = "#D72B16";
     ctx.fillRect(this.x, this.y, this.tileSize, this.tileSize);
-
-    // Function to handle the explosion propagation
     const propagateExplosion = (startX, startY, stepX, stepY, color) => {
       ctx.fillStyle = color;
       for (let i = 1; i <= this.explosionLength; i++) {
@@ -82,13 +79,20 @@ export default class Bomb {
           break;
         } else if (this.tileMap.canMoveTo(x, y)) {
           ctx.fillRect(x, y, this.tileSize, this.tileSize);
+          if (
+            this.tileMap.bomberMan &&
+            this.tileMap.bomberMan.isInExplosion(
+              x / this.tileSize,
+              y / this.tileSize
+            )
+          ) {
+            this.tileMap.bomberMan.isAlive = false;
+          }
         } else {
           break;
         }
       }
     };
-
-    // Draw the explosion in all four directions
     propagateExplosion(this.x, this.y, -this.tileSize, 0, "#F39642"); // Left
     propagateExplosion(this.x, this.y, this.tileSize, 0, "#F39642"); // Right
     propagateExplosion(this.x, this.y, 0, -this.tileSize, "#FFE5A8"); // Up
@@ -96,6 +100,6 @@ export default class Bomb {
   }
 
   remove() {
-    // Implement any additional removal logic if needed
+    this.tileMap.removeBomb(this.x, this.y);
   }
 }

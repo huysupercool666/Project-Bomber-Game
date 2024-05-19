@@ -13,11 +13,16 @@ export default class BomberMan {
     document.addEventListener("keyup", this.#keyup);
     this.bomberManPosition = { x: 57, y: 48 }; // Adjust starting position if necessary
     this.isAlive = true;
+    this.recentlyPlantedBombs = []; // Store recently planted bombs with timestamps
+    this.recentlyPlantedBombTime = 500; // milliseconds to allow moving off the bomb tile
+    this.tileMap.setBomberMan(this); // Set BomberMan reference in TileMap
   }
 
   draw(ctx) {
     if (!this.isAlive) {
       this.state = BomberManStates.dead;
+      this.#displayGameOver(ctx);
+      return; // Stop drawing further animations if the player is dead
     }
     this.#setState();
     this.#updatePosition();
@@ -29,7 +34,7 @@ export default class BomberMan {
       ctx.drawImage(image, this.bomberManPosition.x, this.bomberManPosition.y);
     }
     this.bombs.forEach((bomb) => {
-      bomb.update(20); // Assuming 20 is the deltaTime for simplicity
+      bomb.update(20);
       bomb.draw(ctx);
     });
     this.bombs = this.bombs.filter((bomb) => !bomb.exploded);
@@ -49,27 +54,38 @@ export default class BomberMan {
 
       if (playerX === bombX && playerY === bombY) {
         this.isAlive = false;
+        return;
       }
 
       for (let i = 1; i <= bomb.explosionLength; i++) {
         // Check left explosion
         if (playerX === bombX - i && playerY === bombY) {
           this.isAlive = false;
+          return;
         }
         // Check right explosion
         if (playerX === bombX + i && playerY === bombY) {
           this.isAlive = false;
+          return;
         }
         // Check up explosion
         if (playerX === bombX && playerY === bombY - i) {
           this.isAlive = false;
+          return;
         }
         // Check down explosion
         if (playerX === bombX && playerY === bombY + i) {
           this.isAlive = false;
+          return;
         }
       }
     });
+  }
+
+  isInExplosion(x, y) {
+    const playerX = Math.floor(this.bomberManPosition.x / this.tileSize);
+    const playerY = Math.floor(this.bomberManPosition.y / this.tileSize);
+    return playerX === x && playerY === y;
   }
 
   #setState() {
@@ -101,10 +117,31 @@ export default class BomberMan {
       (this.downPressed ? speed : 0) -
       (this.upPressed ? speed : 0);
 
-    if (this.tileMap.canMoveTo(newX, this.bomberManPosition.y)) {
+    const currentTime = new Date().getTime();
+
+    // Filter out expired recently planted bombs
+    this.recentlyPlantedBombs = this.recentlyPlantedBombs.filter(
+      (bomb) => currentTime - bomb.time < this.recentlyPlantedBombTime
+    );
+
+    const canMoveTo = (x, y) => {
+      if (
+        this.recentlyPlantedBombs.some(
+          (bomb) =>
+            Math.floor(bomb.x / this.tileSize) ===
+              Math.floor(x / this.tileSize) &&
+            Math.floor(bomb.y / this.tileSize) === Math.floor(y / this.tileSize)
+        )
+      ) {
+        return true; // Temporarily allow moving off the bomb tile
+      }
+      return this.tileMap.canMoveTo(x, y);
+    };
+
+    if (canMoveTo(newX, this.bomberManPosition.y)) {
       this.bomberManPosition.x = newX;
     }
-    if (this.tileMap.canMoveTo(this.bomberManPosition.x, newY)) {
+    if (canMoveTo(this.bomberManPosition.x, newY)) {
       this.bomberManPosition.y = newY;
     }
   }
@@ -165,6 +202,12 @@ export default class BomberMan {
     if (this.tileMap.canMoveTo(tileX, tileY)) {
       const bomb = new Bomb(tileX, tileY, this.tileSize, this.tileMap);
       this.bombs.push(bomb);
+      this.tileMap.placeBomb(tileX, tileY);
+      this.recentlyPlantedBombs.push({
+        x: tileX,
+        y: tileY,
+        time: new Date().getTime(),
+      });
     }
   }
 
@@ -213,4 +256,13 @@ export default class BomberMan {
         break;
     }
   };
+
+  #displayGameOver(ctx) {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.fillStyle = "white";
+    ctx.font = "48px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("Game Over", ctx.canvas.width / 2, ctx.canvas.height / 2);
+  }
 }
