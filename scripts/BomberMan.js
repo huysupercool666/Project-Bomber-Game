@@ -6,80 +6,63 @@ export default class BomberMan {
   constructor(tileMap, tileSize) {
     this.tileMap = tileMap;
     this.tileSize = tileSize;
+    this.characterSize = tileSize * 0.6; // Kích thước nhân vật nhỏ hơn 1 chút
     this.state = BomberManStates.idle;
     this.bombs = [];
     this.#createAnimations();
     document.addEventListener("keydown", this.#keydown);
     document.addEventListener("keyup", this.#keyup);
-    this.bomberManPosition = { x: 57, y: 48 }; // Adjust starting position if necessary
+    this.bomberManPosition = { x: 58, y: 50 };
     this.isAlive = true;
-    this.recentlyPlantedBombs = []; // Store recently planted bombs with timestamps
-    this.recentlyPlantedBombTime = 500; // milliseconds to allow moving off the bomb tile
-    this.tileMap.setBomberMan(this); // Set BomberMan reference in TileMap
+    this.recentlyPlantedBombs = [];
+    this.recentlyPlantedBombTime = 500;
+    this.characterMovedOffBomb = false; // Trạng thái di chuyển khỏi vị trí bom
+    this.tileMap.setBomberMan(this);
+    this.idleResetTime = 100; // Thời gian reset Idle
+    this.lastActionTime = new Date().getTime();
+    this.currentAnimation = this.characterIdle; // Hoạt ảnh hiện tại
   }
 
   draw(ctx) {
-    if (!this.isAlive) {
-      this.state = BomberManStates.dead;
-      this.#displayGameOver(ctx);
-      return; // Stop drawing further animations if the player is dead
+    if (this.state === BomberManStates.dead) {
+      // Hiển thị hoạt ảnh "dead"
+      if (this.deadAnimation && !this.deadAnimation.isFinished()) {
+        this.currentAnimation = this.deadAnimation;
+        this.currentAnimation.update(); // Cập nhật khung hình hoạt ảnh
+      } else {
+        this.isAlive = false; // Đánh dấu nhân vật đã chết
+        this.#displayGameOver(ctx); // Hiển thị màn hình Game Over
+        return;
+      }
+    } else {
+      this.#setState();
+      this.#updatePosition();
     }
-    this.#setState();
-    this.#updatePosition();
-    const animation = this.animations.find((animation) =>
-      animation.isFor(this.state)
-    );
-    if (animation) {
-      const image = animation.getImage();
-      ctx.drawImage(image, this.bomberManPosition.x, this.bomberManPosition.y);
-    }
+
+    // Vẽ bomb trước nhân vật
     this.bombs.forEach((bomb) => {
       bomb.update(20);
       bomb.draw(ctx);
     });
+
+    if (this.currentAnimation && this.currentAnimation.state !== this.state) {
+      this.currentAnimation.reset();
+    }
+    this.currentAnimation = this.animations.find((animation) =>
+      animation.isFor(this.state)
+    );
+    if (this.currentAnimation) {
+      const image = this.currentAnimation.getImage();
+      ctx.drawImage(
+        image,
+        this.bomberManPosition.x,
+        this.bomberManPosition.y,
+        this.characterSize,
+        this.characterSize
+      );
+    }
+
     this.bombs = this.bombs.filter((bomb) => !bomb.exploded);
-
-    this.checkExplosionCollision();
-  }
-
-  checkExplosionCollision() {
-    if (!this.isAlive) return;
-
-    const bombExplosions = this.bombs.filter((bomb) => bomb.exploded);
-    bombExplosions.forEach((bomb) => {
-      const bombX = Math.floor(bomb.x / this.tileSize);
-      const bombY = Math.floor(bomb.y / this.tileSize);
-      const playerX = Math.floor(this.bomberManPosition.x / this.tileSize);
-      const playerY = Math.floor(this.bomberManPosition.y / this.tileSize);
-
-      if (playerX === bombX && playerY === bombY) {
-        this.isAlive = false;
-        return;
-      }
-
-      for (let i = 1; i <= bomb.explosionLength; i++) {
-        // Check left explosion
-        if (playerX === bombX - i && playerY === bombY) {
-          this.isAlive = false;
-          return;
-        }
-        // Check right explosion
-        if (playerX === bombX + i && playerY === bombY) {
-          this.isAlive = false;
-          return;
-        }
-        // Check up explosion
-        if (playerX === bombX && playerY === bombY - i) {
-          this.isAlive = false;
-          return;
-        }
-        // Check down explosion
-        if (playerX === bombX && playerY === bombY + i) {
-          this.isAlive = false;
-          return;
-        }
-      }
-    });
   }
 
   isInExplosion(x, y) {
@@ -89,68 +72,125 @@ export default class BomberMan {
   }
 
   #setState() {
+    const currentTime = new Date().getTime();
     if (this.deadPressed) {
       this.state = BomberManStates.dead;
     } else if (this.rightPressed) {
       this.state = BomberManStates.right;
+      this.lastActionTime = currentTime;
     } else if (this.leftPressed) {
       this.state = BomberManStates.left;
+      this.lastActionTime = currentTime;
     } else if (this.upPressed) {
       this.state = BomberManStates.up;
+      this.lastActionTime = currentTime;
     } else if (this.downPressed) {
       this.state = BomberManStates.down;
-    } else {
+      this.lastActionTime = currentTime;
+    } else if (currentTime - this.lastActionTime > this.idleResetTime) {
       this.state = BomberManStates.idle;
     }
   }
 
   #updatePosition() {
-    if (!this.isAlive) return;
-
     const speed = 2;
-    let newX =
-      this.bomberManPosition.x +
+    const characterWidth = this.tileSize * 0.6;
+    const characterHeight = this.tileSize * 0.6;
+    const currentX = this.bomberManPosition.x;
+    const currentY = this.bomberManPosition.y;
+
+    const newX =
+      currentX +
       (this.rightPressed ? speed : 0) -
       (this.leftPressed ? speed : 0);
-    let newY =
-      this.bomberManPosition.y +
-      (this.downPressed ? speed : 0) -
-      (this.upPressed ? speed : 0);
-
-    const currentTime = new Date().getTime();
-
-    // Filter out expired recently planted bombs
-    this.recentlyPlantedBombs = this.recentlyPlantedBombs.filter(
-      (bomb) => currentTime - bomb.time < this.recentlyPlantedBombTime
-    );
+    const newY =
+      currentY + (this.downPressed ? speed : 0) - (this.upPressed ? speed : 0);
 
     const canMoveTo = (x, y) => {
-      if (
-        this.recentlyPlantedBombs.some(
-          (bomb) =>
-            Math.floor(bomb.x / this.tileSize) ===
-              Math.floor(x / this.tileSize) &&
-            Math.floor(bomb.y / this.tileSize) === Math.floor(y / this.tileSize)
-        )
-      ) {
-        return true; // Temporarily allow moving off the bomb tile
+      const bombAtNewPosition = this.bombs.find((bomb) =>
+        bomb.isOverlapping(x, y, characterWidth, characterHeight)
+      );
+      if (bombAtNewPosition) {
+        if (bombAtNewPosition.isCharacterOverlapping) {
+          return true; // Cho phép di chuyển khỏi ô bomb
+        } else {
+          return false; // Ngăn di chuyển vào ô bomb
+        }
       }
       return this.tileMap.canMoveTo(x, y);
     };
 
-    if (canMoveTo(newX, this.bomberManPosition.y)) {
+    const wasOnBomb = this.isCharacterOnBomb();
+
+    if (canMoveTo(newX, currentY)) {
       this.bomberManPosition.x = newX;
+    } else {
+      this.bomberManPosition.x = currentX;
     }
+
     if (canMoveTo(this.bomberManPosition.x, newY)) {
       this.bomberManPosition.y = newY;
+    } else {
+      this.bomberManPosition.y = currentY;
     }
+
+    const isNowOnBomb = this.isCharacterOnBomb();
+
+    if (wasOnBomb && !isNowOnBomb) {
+      this.characterMovedOffBomb = true;
+      this.compareCharacterAndBombPositions();
+    }
+
+    // Cập nhật trạng thái của bomb để ngừng chồng chéo sau khi nhân vật di chuyển
+    this.bombs.forEach((bomb) => {
+      if (
+        !bomb.isOverlapping(
+          this.bomberManPosition.x,
+          this.bomberManPosition.y,
+          characterWidth,
+          characterHeight
+        )
+      ) {
+        bomb.isCharacterOverlapping = false;
+      }
+    });
+  }
+
+  isCharacterOnBomb() {
+    const characterWidth = this.tileSize * 0.6;
+    const characterHeight = this.tileSize * 0.6;
+
+    return this.bombs.some((bomb) =>
+      bomb.isOverlapping(
+        this.bomberManPosition.x,
+        this.bomberManPosition.y,
+        characterWidth,
+        characterHeight
+      )
+    );
+  }
+
+  compareCharacterAndBombPositions() {
+    this.bombs.forEach((bomb) => {
+      const characterTileX = Math.floor(
+        this.bomberManPosition.x / this.tileSize
+      );
+      const characterTileY = Math.floor(
+        this.bomberManPosition.y / this.tileSize
+      );
+      const bombTileX = Math.floor(bomb.x / this.tileSize);
+      const bombTileY = Math.floor(bomb.y / this.tileSize);
+
+      console.log(`Character Position: (${characterTileX}, ${characterTileY})`);
+      console.log(`Bomb Position: (${bombTileX}, ${bombTileY})`);
+    });
   }
 
   #createAnimations() {
     this.characterIdle = new SpriteAnimation(
       "CharacterIdle(?).png",
       4,
-      200,
+      300,
       BomberManStates.idle
     );
     this.goDownAnimation = new SpriteAnimation(
@@ -180,7 +220,7 @@ export default class BomberMan {
     this.deadAnimation = new SpriteAnimation(
       "DeadAnimation(?).png",
       9,
-      9,
+      20,
       BomberManStates.dead,
       true
     );
@@ -195,20 +235,23 @@ export default class BomberMan {
   }
 
   plantBomb() {
+    if (this.bombs.length > 0) {
+      return; // Chỉ đặt một bomb tại một thời điểm
+    }
+
     const tileX =
       Math.floor(this.bomberManPosition.x / this.tileSize) * this.tileSize;
     const tileY =
       Math.floor(this.bomberManPosition.y / this.tileSize) * this.tileSize;
-    if (this.tileMap.canMoveTo(tileX, tileY)) {
-      const bomb = new Bomb(tileX, tileY, this.tileSize, this.tileMap);
-      this.bombs.push(bomb);
-      this.tileMap.placeBomb(tileX, tileY);
-      this.recentlyPlantedBombs.push({
-        x: tileX,
-        y: tileY,
-        time: new Date().getTime(),
-      });
-    }
+
+    // Đặt bomb ngay dưới nhân vật
+    const bomb = new Bomb(tileX, tileY, this.tileSize, this.tileMap);
+    this.bombs.push(bomb);
+    this.recentlyPlantedBombs.push({
+      x: tileX,
+      y: tileY,
+      time: new Date().getTime(),
+    });
   }
 
   #keydown = (event) => {
@@ -263,6 +306,55 @@ export default class BomberMan {
     ctx.fillStyle = "white";
     ctx.font = "48px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("Game Over", ctx.canvas.width / 2, ctx.canvas.height / 2);
+    ctx.fillText("Game Over", ctx.canvas.width / 2, ctx.canvas.height / 2 - 40);
+
+    // Thêm nút "Restart"
+    const buttonX = ctx.canvas.width / 2 - 50;
+    const buttonY = ctx.canvas.height / 2;
+    const buttonWidth = 100;
+    const buttonHeight = 40;
+
+    ctx.fillStyle = "white";
+    ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+    ctx.fillStyle = "black";
+    ctx.font = "24px sans-serif";
+    ctx.fillText("Restart", ctx.canvas.width / 2, buttonY + 28);
+
+    // Lắng nghe sự kiện click vào nút "Restart"
+    canvas.addEventListener("click", this.#handleRestartClick);
+  }
+
+  #handleRestartClick = (event) => {
+    const canvas = event.target;
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    const buttonX = canvas.width / 2 - 50;
+    const buttonY = canvas.height / 2;
+    const buttonWidth = 100;
+    const buttonHeight = 40;
+
+    if (
+      x >= buttonX &&
+      x <= buttonX + buttonWidth &&
+      y >= buttonY &&
+      y <= buttonY + buttonHeight
+    ) {
+      this.#restartGame();
+    }
+  };
+
+  #restartGame() {
+    // Đặt lại các trạng thái và vị trí của trò chơi
+    this.bomberManPosition = { x: 58, y: 50 };
+    this.state = BomberManStates.idle;
+    this.isAlive = true;
+    this.bombs = [];
+    this.tileMap.initMap();
+    this.currentAnimation = this.characterIdle;
+    // Xóa sự kiện click
+    const canvas = document.querySelector("canvas");
+    canvas.removeEventListener("click", this.#handleRestartClick);
   }
 }

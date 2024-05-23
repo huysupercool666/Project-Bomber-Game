@@ -20,6 +20,7 @@ export default class SpriteAnimation {
 
   reset() {
     this.imageIndex = 0;
+    this.timerCount = this.timerCountDefault;
   }
 
   getImage() {
@@ -33,12 +34,24 @@ export default class SpriteAnimation {
       this.timerCount = this.timerCountDefault;
       this.imageIndex++;
       if (this.imageIndex >= this.images.length) {
-        this.imageIndex = 0;
+        if (this.stopAtEnd) {
+          this.imageIndex = this.images.length - 1;
+        } else {
+          this.imageIndex = 0;
+        }
       }
     }
   }
 
   #shouldStop() {
     return this.stopAtEnd && this.imageIndex === this.images.length - 1;
+  }
+
+  isFinished() {
+    return this.stopAtEnd && this.imageIndex === this.images.length - 1;
+  }
+
+  update() {
+    this.#setImageIndex();
   }
 }

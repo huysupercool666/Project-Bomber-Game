@@ -1,3 +1,4 @@
+import BomberManStates from "./BomberManStates.js";
 import SpriteAnimation from "./SpriteAnimation.js";
 
 export default class Bomb {
@@ -12,6 +13,7 @@ export default class Bomb {
     this.explosionDuration = 2000; // milliseconds for how long the explosion lasts
     this.exploded = false;
     this.explodedTime = 3000; // Track how long the explosion has been visible
+    this.isCharacterOverlapping = true; // Initially true when bomb is placed
     this.bombAnimation = new SpriteAnimation(
       "BombAnimation(?).png",
       4,
@@ -21,12 +23,12 @@ export default class Bomb {
     );
     this.explosionAnimation = new SpriteAnimation(
       "ExplosiveAnimation(2).png",
-      2,
+      1,
       30,
       "bombExplosion",
       true
     );
-    this.explosionLength = 2;
+    this.explosionLength = 1;
   }
 
   update(deltaTime) {
@@ -45,18 +47,12 @@ export default class Bomb {
     }
   }
 
-  draw(ctx, deltaTime) {
+  draw(ctx) {
     if (!this.exploded) {
       const image = this.bombAnimation.getImage();
-      ctx.drawImage(
-        image,
-        this.x + (this.tileSize - image.width) / 2,
-        this.y + (this.tileSize - image.height) / 2,
-        this.tileSize,
-        this.tileSize
-      );
+      ctx.drawImage(image, this.x, this.y, this.tileSize, this.tileSize);
     } else {
-      this.drawExplosion(ctx, deltaTime);
+      this.drawExplosion(ctx);
     }
   }
 
@@ -65,7 +61,7 @@ export default class Bomb {
     this.tileMap.removeBomb(this.x, this.y);
   }
 
-  drawExplosion(ctx, deltaTime) {
+  drawExplosion(ctx) {
     ctx.fillStyle = "#D72B16";
     ctx.fillRect(this.x, this.y, this.tileSize, this.tileSize);
     const propagateExplosion = (startX, startY, stepX, stepY, color) => {
@@ -77,16 +73,16 @@ export default class Bomb {
           this.tileMap.removeTile(x, y);
           ctx.fillRect(x, y, this.tileSize, this.tileSize);
           break;
-        } else if (this.tileMap.canMoveTo(x, y)) {
+        } else if (this.tileMap.canMoveToIgnoreBomb(x, y)) {
           ctx.fillRect(x, y, this.tileSize, this.tileSize);
           if (
             this.tileMap.bomberMan &&
             this.tileMap.bomberMan.isInExplosion(
-              x / this.tileSize,
-              y / this.tileSize
+              Math.floor(x / this.tileSize),
+              Math.floor(y / this.tileSize)
             )
           ) {
-            this.tileMap.bomberMan.isAlive = false;
+            this.tileMap.bomberMan.state = BomberManStates.dead;
           }
         } else {
           break;
@@ -101,5 +97,14 @@ export default class Bomb {
 
   remove() {
     this.tileMap.removeBomb(this.x, this.y);
+  }
+
+  isOverlapping(x, y, width, height) {
+    return !(
+      x + width <= this.x ||
+      x >= this.x + this.tileSize ||
+      y + height <= this.y ||
+      y >= this.y + this.tileSize
+    );
   }
 }

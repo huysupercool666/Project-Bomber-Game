@@ -14,39 +14,35 @@ export default class TileMap {
   }
 
   canMoveTo(x, y) {
-    const characterWidth = 20;
-    const characterHeight = 25;
-    const tiles = [
-      { x: Math.floor(x / this.tileSize), y: Math.floor(y / this.tileSize) },
-      {
-        x: Math.floor((x + characterWidth) / this.tileSize),
-        y: Math.floor(y / this.tileSize),
-      },
-      {
-        x: Math.floor(x / this.tileSize),
-        y: Math.floor((y + characterHeight) / this.tileSize),
-      },
-      {
-        x: Math.floor((x + characterWidth) / this.tileSize),
-        y: Math.floor((y + characterHeight) / this.tileSize),
-      },
+    const characterWidth = this.tileSize * 0.6;
+    const characterHeight = this.tileSize * 0.6;
+
+    const corners = [
+      { x: x, y: y },
+      { x: x + characterWidth, y: y },
+      { x: x, y: y + characterHeight },
+      { x: x + characterWidth, y: y + characterHeight },
     ];
-    return tiles.every((tile) => {
-      const tileKey = `${tile.x},${tile.y}`;
+
+    return corners.every((corner) => {
+      const tileX = Math.floor(corner.x / this.tileSize);
+      const tileY = Math.floor(corner.y / this.tileSize);
+      const tileKey = `${tileX},${tileY}`;
+
       return (
-        tile.y >= 0 &&
-        tile.y < this.map.length &&
-        tile.x >= 0 &&
-        tile.x < this.map[tile.y].length &&
-        this.map[tile.y][tile.x] === 0 &&
+        tileY >= 0 &&
+        tileY < this.map.length &&
+        tileX >= 0 &&
+        tileX < this.map[tileY].length &&
+        this.map[tileY][tileX] === 0 &&
         !this.bombPositions.has(tileKey)
       );
     });
   }
 
   canMoveToIgnoreBomb(x, y) {
-    const characterWidth = 20;
-    const characterHeight = 25;
+    const characterWidth = this.tileSize * 0.3;
+    const characterHeight = this.tileSize * 0.3;
     const tiles = [
       { x: Math.floor(x / this.tileSize), y: Math.floor(y / this.tileSize) },
       {
@@ -62,6 +58,7 @@ export default class TileMap {
         y: Math.floor((y + characterHeight) / this.tileSize),
       },
     ];
+
     return tiles.every((tile) => {
       return (
         tile.y >= 0 &&
@@ -124,6 +121,10 @@ export default class TileMap {
     this.addSoftWalls();
   }
 
+  getRandomNumberInRange(min, max) {
+    return (Math.random() * (max - min) + min) / 10;
+  }
+
   addSoftWalls() {
     const positions = [];
     const playerPosX = Math.floor(this.x / this.tileSize);
@@ -143,7 +144,9 @@ export default class TileMap {
         }
       }
     }
-    const numberOfSoftWalls = Math.floor(positions.length * Math.random(10));
+    const numberOfSoftWalls = Math.floor(
+      positions.length * this.getRandomNumberInRange(5, 10)
+    );
     for (let i = 0; i < numberOfSoftWalls; i++) {
       const index = Math.floor(Math.random() * positions.length);
       const pos = positions.splice(index, 1)[0];
