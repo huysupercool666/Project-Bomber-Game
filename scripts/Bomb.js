@@ -15,16 +15,16 @@ export default class Bomb {
     this.explodedTime = 3000; // Track how long the explosion has been visible
     this.isCharacterOverlapping = true; // Initially true when bomb is placed
     this.bombAnimation = new SpriteAnimation(
-      "BombAnimation(?).png",
-      4,
-      40,
+      "BombAnimation(?).png", // Adjust the file name template as needed
+      4, // Number of images for bomb animation
+      40, // Timer count for bomb animation
       "plantBomb",
       true
     );
     this.explosionAnimation = new SpriteAnimation(
-      "ExplosiveAnimation(2).png",
-      1,
-      30,
+      "ExplosiveAnimation(?).png", // Adjust the file name template for explosion sprite
+      5, // Number of images for explosion animation
+      1000, // Timer count for explosion animation
       "bombExplosion",
       true
     );
@@ -34,6 +34,7 @@ export default class Bomb {
   update(deltaTime) {
     if (this.timer > 0) {
       this.timer -= deltaTime;
+      this.bombAnimation.update();
       if (this.timer <= 0) {
         this.explodedTime = this.explosionDuration;
         this.explode();
@@ -41,6 +42,7 @@ export default class Bomb {
       }
     } else if (this.exploded && this.explodedTime > 0) {
       this.explodedTime -= deltaTime;
+      this.explosionAnimation.update();
       if (this.explodedTime <= 0) {
         this.remove();
       }
@@ -62,19 +64,36 @@ export default class Bomb {
   }
 
   drawExplosion(ctx) {
-    ctx.fillStyle = "#D72B16";
-    ctx.fillRect(this.x, this.y, this.tileSize, this.tileSize);
-    const propagateExplosion = (startX, startY, stepX, stepY, color) => {
-      ctx.fillStyle = color;
+    const centerImage = this.explosionAnimation.getFrame(0);
+    ctx.drawImage(centerImage, this.x, this.y, this.tileSize, this.tileSize);
+
+    const getExplosionImage = (direction) => {
+      // Tùy thuộc vào sprite của bạn, bạn có thể cần điều chỉnh để lấy đúng hình ảnh
+      switch (direction) {
+        case "left":
+          return this.explosionAnimation.getFrame(1); // Frame cho hướng trái
+        case "right":
+          return this.explosionAnimation.getFrame(2); // Frame cho hướng phải
+        case "up":
+          return this.explosionAnimation.getFrame(3); // Frame cho hướng lên
+        case "down":
+          return this.explosionAnimation.getFrame(4); // Frame cho hướng xuống
+        default:
+          return centerImage;
+      }
+    };
+
+    const propagateExplosion = (startX, startY, stepX, stepY, direction) => {
+      const explosionImage = getExplosionImage(direction);
       for (let i = 1; i <= this.explosionLength; i++) {
         const x = startX + i * stepX;
         const y = startY + i * stepY;
         if (this.tileMap.hasSoftWall(x, y)) {
           this.tileMap.removeTile(x, y);
-          ctx.fillRect(x, y, this.tileSize, this.tileSize);
+          ctx.drawImage(explosionImage, x, y, this.tileSize, this.tileSize);
           break;
         } else if (this.tileMap.canMoveToIgnoreBomb(x, y)) {
-          ctx.fillRect(x, y, this.tileSize, this.tileSize);
+          ctx.drawImage(explosionImage, x, y, this.tileSize, this.tileSize);
           if (
             this.tileMap.bomberMan &&
             this.tileMap.bomberMan.isInExplosion(
@@ -89,10 +108,11 @@ export default class Bomb {
         }
       }
     };
-    propagateExplosion(this.x, this.y, -this.tileSize, 0, "#F39642"); // Left
-    propagateExplosion(this.x, this.y, this.tileSize, 0, "#F39642"); // Right
-    propagateExplosion(this.x, this.y, 0, -this.tileSize, "#FFE5A8"); // Up
-    propagateExplosion(this.x, this.y, 0, this.tileSize, "#FFE5A8"); // Down
+
+    propagateExplosion(this.x, this.y, -this.tileSize, 0, "left"); // Left
+    propagateExplosion(this.x, this.y, this.tileSize, 0, "right"); // Right
+    propagateExplosion(this.x, this.y, 0, -this.tileSize, "up"); // Up
+    propagateExplosion(this.x, this.y, 0, this.tileSize, "down"); // Down
   }
 
   remove() {

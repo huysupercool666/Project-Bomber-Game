@@ -28,6 +28,10 @@ export default class SpriteAnimation {
     return this.images[this.imageIndex];
   }
 
+  getFrame(index) {
+    return this.images[index];
+  }
+
   #setImageIndex() {
     this.timerCount--;
     if (this.timerCount <= 0 && !this.#shouldStop()) {

@@ -6,7 +6,7 @@ export default class BomberMan {
   constructor(tileMap, tileSize) {
     this.tileMap = tileMap;
     this.tileSize = tileSize;
-    this.characterSize = tileSize * 0.6; // Kích thước nhân vật nhỏ hơn 1 chút
+    this.characterSize = tileSize * 0.6; // Chỉnh sửa kích thước nhân vật
     this.state = BomberManStates.idle;
     this.bombs = [];
     this.#createAnimations();
@@ -18,7 +18,7 @@ export default class BomberMan {
     this.recentlyPlantedBombTime = 500;
     this.characterMovedOffBomb = false; // Trạng thái di chuyển khỏi vị trí bom
     this.tileMap.setBomberMan(this);
-    this.idleResetTime = 100; // Thời gian reset Idle
+    this.idleResetTime = 120; // Thời gian reset Idle
     this.lastActionTime = new Date().getTime();
     this.currentAnimation = this.characterIdle; // Hoạt ảnh hiện tại
   }
@@ -94,8 +94,8 @@ export default class BomberMan {
 
   #updatePosition() {
     const speed = 2;
-    const characterWidth = this.tileSize * 0.6;
-    const characterHeight = this.tileSize * 0.6;
+    const characterWidth = this.tileSize * 0.7;
+    const characterHeight = this.tileSize * 0.7;
     const currentX = this.bomberManPosition.x;
     const currentY = this.bomberManPosition.y;
 
@@ -235,11 +235,11 @@ export default class BomberMan {
   }
 
   plantBomb() {
-    if (this.bombs.length > 0) {
-      return; // Chỉ đặt một bomb tại một thời điểm
-    }
+    // if (this.bombs.length > 0) {
+    //   return; // Chỉ đặt một bomb tại một thời điểm
+    // }
 
-    const tileX =
+    const tileX = 
       Math.floor(this.bomberManPosition.x / this.tileSize) * this.tileSize;
     const tileY =
       Math.floor(this.bomberManPosition.y / this.tileSize) * this.tileSize;
@@ -321,40 +321,40 @@ export default class BomberMan {
     ctx.fillText("Restart", ctx.canvas.width / 2, buttonY + 28);
 
     // Lắng nghe sự kiện click vào nút "Restart"
-    canvas.addEventListener("click", this.#handleRestartClick);
+    //canvas.addEventListener("click", this.#handleRestartClick);
   }
 
-  #handleRestartClick = (event) => {
-    const canvas = event.target;
-    const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+  // #handleRestartClick = (event) => {
+  //   const canvas = event.target;
+  //   const rect = canvas.getBoundingClientRect();
+  //   const x = event.clientX - rect.left;
+  //   const y = event.clientY - rect.top;
 
-    const buttonX = canvas.width / 2 - 50;
-    const buttonY = canvas.height / 2;
-    const buttonWidth = 100;
-    const buttonHeight = 40;
+  //   const buttonX = canvas.width / 2 - 50;
+  //   const buttonY = canvas.height / 2;
+  //   const buttonWidth = 100;
+  //   const buttonHeight = 40;
 
-    if (
-      x >= buttonX &&
-      x <= buttonX + buttonWidth &&
-      y >= buttonY &&
-      y <= buttonY + buttonHeight
-    ) {
-      this.#restartGame();
-    }
-  };
+  //   if (
+  //     x >= buttonX &&
+  //     x <= buttonX + buttonWidth &&
+  //     y >= buttonY &&
+  //     y <= buttonY + buttonHeight
+  //   ) {
+  //     this.#restartGame();
+  //   }
+  // };
 
-  #restartGame() {
-    // Đặt lại các trạng thái và vị trí của trò chơi
-    this.bomberManPosition = { x: 58, y: 50 };
-    this.state = BomberManStates.idle;
-    this.isAlive = true;
-    this.bombs = [];
-    this.tileMap.initMap();
-    this.currentAnimation = this.characterIdle;
-    // Xóa sự kiện click
-    const canvas = document.querySelector("canvas");
-    canvas.removeEventListener("click", this.#handleRestartClick);
-  }
+  // #restartGame() {
+  //   // Đặt lại các trạng thái và vị trí của trò chơi
+  //   this.bomberManPosition = { x: 58, y: 50 };
+  //   this.state = BomberManStates.idle;
+  //   this.isAlive = true;
+  //   this.bombs = [];
+  //   this.tileMap.initMap();
+  //   this.currentAnimation = this.characterIdle;
+  //   // Xóa sự kiện click
+  //   const canvas = document.querySelector("canvas");
+  //   canvas.removeEventListener("click", this.#handleRestartClick);
+  // }
 }
