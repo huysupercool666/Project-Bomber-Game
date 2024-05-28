@@ -13,10 +13,7 @@ export default class TileMap {
     this.bomberMan = bomberMan;
   }
 
-  canMoveTo(x, y) {
-    const characterWidth = this.tileSize * 0.6;
-    const characterHeight = this.tileSize * 0.6;
-
+  canMoveTo(x, y, characterWidth, characterHeight) {
     const corners = [
       { x: x, y: y },
       { x: x + characterWidth, y: y },
@@ -29,14 +26,18 @@ export default class TileMap {
       const tileY = Math.floor(corner.y / this.tileSize);
       const tileKey = `${tileX},${tileY}`;
 
-      return (
-        tileY >= 0 &&
-        tileY < this.map.length &&
-        tileX >= 0 &&
-        tileX < this.map[tileY].length &&
-        this.map[tileY][tileX] === 0 &&
-        !this.bombPositions.has(tileKey)
-      );
+      // Kiểm tra xem tileY và tileX có nằm trong phạm vi của mảng không
+      if (
+        tileY < 0 ||
+        tileY >= this.map.length ||
+        tileX < 0 ||
+        tileX >= this.map[tileY].length
+      ) {
+        return false;
+      }
+
+      // Đảm bảo rằng nhân vật không thể di chuyển vào tường cứng (hardWall) hoặc bom
+      return this.map[tileY][tileX] === 0 && !this.bombPositions.has(tileKey);
     });
   }
 
@@ -60,13 +61,15 @@ export default class TileMap {
     ];
 
     return tiles.every((tile) => {
-      return (
-        tile.y >= 0 &&
-        tile.y < this.map.length &&
-        tile.x >= 0 &&
-        tile.x < this.map[tile.y].length &&
-        this.map[tile.y][tile.x] === 0
-      );
+      if (
+        tile.y < 0 ||
+        tile.y >= this.map.length ||
+        tile.x < 0 ||
+        tile.x >= this.map[tile.y].length
+      ) {
+        return false;
+      }
+      return this.map[tile.y][tile.x] === 0;
     });
   }
 
@@ -82,19 +85,32 @@ export default class TileMap {
     this.bombPositions.delete(`${tileX},${tileY}`);
   }
 
-  // Check if a tile contains a soft wall
   hasSoftWall(x, y) {
     const tileX = Math.floor(x / this.tileSize);
     const tileY = Math.floor(y / this.tileSize);
+    if (
+      tileY < 0 ||
+      tileY >= this.map.length ||
+      tileX < 0 ||
+      tileX >= this.map[tileY].length
+    ) {
+      return false;
+    }
     return this.map[tileY][tileX] === 2;
   }
 
-  // Remove a soft wall tile
   removeTile(x, y) {
     const tileX = Math.floor(x / this.tileSize);
     const tileY = Math.floor(y / this.tileSize);
-    if (this.map[tileY][tileX] === 2) {
-      this.map[tileY][tileX] = 0;
+    if (
+      tileY >= 0 &&
+      tileY < this.map.length &&
+      tileX >= 0 &&
+      tileX < this.map[tileY].length
+    ) {
+      if (this.map[tileY][tileX] === 2) {
+        this.map[tileY][tileX] = 0;
+      }
     }
   }
 

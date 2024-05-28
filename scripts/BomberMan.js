@@ -94,8 +94,8 @@ export default class BomberMan {
 
   #updatePosition() {
     const speed = 2;
-    const characterWidth = this.tileSize * 0.7;
-    const characterHeight = this.tileSize * 0.7;
+    const characterWidth = this.tileSize * 0.6;
+    const characterHeight = this.tileSize * 0.6;
     const currentX = this.bomberManPosition.x;
     const currentY = this.bomberManPosition.y;
 
@@ -117,7 +117,7 @@ export default class BomberMan {
           return false; // Ngăn di chuyển vào ô bomb
         }
       }
-      return this.tileMap.canMoveTo(x, y);
+      return this.tileMap.canMoveTo(x, y, characterWidth, characterHeight);
     };
 
     const wasOnBomb = this.isCharacterOnBomb();
@@ -138,7 +138,8 @@ export default class BomberMan {
 
     if (wasOnBomb && !isNowOnBomb) {
       this.characterMovedOffBomb = true;
-      this.compareCharacterAndBombPositions();
+      // Ngừng kiểm tra vị trí của bom và nhân vật
+      this.compareCharacterAndBombPositions = () => {};
     }
 
     // Cập nhật trạng thái của bomb để ngừng chồng chéo sau khi nhân vật di chuyển
@@ -235,11 +236,10 @@ export default class BomberMan {
   }
 
   plantBomb() {
-    // if (this.bombs.length > 0) {
-    //   return; // Chỉ đặt một bomb tại một thời điểm
-    // }
-
-    const tileX = 
+    if (this.bombs.length > 0) {
+      return; // Chỉ đặt một bomb tại một thời điểm
+    }
+    const tileX =
       Math.floor(this.bomberManPosition.x / this.tileSize) * this.tileSize;
     const tileY =
       Math.floor(this.bomberManPosition.y / this.tileSize) * this.tileSize;
@@ -308,7 +308,6 @@ export default class BomberMan {
     ctx.textAlign = "center";
     ctx.fillText("Game Over", ctx.canvas.width / 2, ctx.canvas.height / 2 - 40);
 
-    // Thêm nút "Restart"
     const buttonX = ctx.canvas.width / 2 - 50;
     const buttonY = ctx.canvas.height / 2;
     const buttonWidth = 100;
@@ -319,42 +318,5 @@ export default class BomberMan {
     ctx.fillStyle = "black";
     ctx.font = "24px sans-serif";
     ctx.fillText("Restart", ctx.canvas.width / 2, buttonY + 28);
-
-    // Lắng nghe sự kiện click vào nút "Restart"
-    //canvas.addEventListener("click", this.#handleRestartClick);
   }
-
-  // #handleRestartClick = (event) => {
-  //   const canvas = event.target;
-  //   const rect = canvas.getBoundingClientRect();
-  //   const x = event.clientX - rect.left;
-  //   const y = event.clientY - rect.top;
-
-  //   const buttonX = canvas.width / 2 - 50;
-  //   const buttonY = canvas.height / 2;
-  //   const buttonWidth = 100;
-  //   const buttonHeight = 40;
-
-  //   if (
-  //     x >= buttonX &&
-  //     x <= buttonX + buttonWidth &&
-  //     y >= buttonY &&
-  //     y <= buttonY + buttonHeight
-  //   ) {
-  //     this.#restartGame();
-  //   }
-  // };
-
-  // #restartGame() {
-  //   // Đặt lại các trạng thái và vị trí của trò chơi
-  //   this.bomberManPosition = { x: 58, y: 50 };
-  //   this.state = BomberManStates.idle;
-  //   this.isAlive = true;
-  //   this.bombs = [];
-  //   this.tileMap.initMap();
-  //   this.currentAnimation = this.characterIdle;
-  //   // Xóa sự kiện click
-  //   const canvas = document.querySelector("canvas");
-  //   canvas.removeEventListener("click", this.#handleRestartClick);
-  // }
 }

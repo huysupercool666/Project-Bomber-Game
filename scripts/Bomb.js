@@ -120,11 +120,12 @@ export default class Bomb {
   }
 
   isOverlapping(x, y, width, height) {
+    const margin = 21; // Thêm một margin nhỏ để kiểm tra va chạm, giảm giá trị margin để giảm kích thước vùng overlap
     return !(
-      x + width <= this.x ||
-      x >= this.x + this.tileSize ||
-      y + height <= this.y ||
-      y >= this.y + this.tileSize
+      x + width - margin <= this.x ||
+      x >= this.x + this.tileSize - margin ||
+      y + height - margin <= this.y ||
+      y >= this.y + this.tileSize - margin
     );
   }
 }
