@@ -68,7 +68,6 @@ export default class Bomb {
     ctx.drawImage(centerImage, this.x, this.y, this.tileSize, this.tileSize);
 
     const getExplosionImage = (direction) => {
-      // Tùy thuộc vào sprite của bạn, bạn có thể cần điều chỉnh để lấy đúng hình ảnh
       switch (direction) {
         case "left":
           return this.explosionAnimation.getFrame(1); // Frame cho hướng trái
